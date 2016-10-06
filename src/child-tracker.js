@@ -49,6 +49,22 @@
         };
     }
 
+    //Basic debounce
+    function debounce(func, wait, immediate) {
+      var timeout;
+      return function() {
+        var context = this, args = arguments;
+        var later = function() {
+          timeout = null;
+          if (!immediate) func.apply(context, args);
+        };
+        var callNow = immediate && !timeout;
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+        if (callNow) func.apply(context, args);
+      };
+    };
+
     // A simple wrapper for starting and clearing a timeout
     var Timer = function(callback, duration) {
         var alerter;
@@ -177,7 +193,36 @@
             return this.isVisible;
         }
 
+        //SEND MESSAGE WITH VISIBLE ANNOATIONS
+        var visTrackers = pymParent.trackers;
+        let visArray = null;
+        var sendVisibles = function(){
+            var iframeRect = pymParent.iframe.getBoundingClientRect();
+            var vHeight  = window.innerHeight || document.documentElement.clientHeight;
+            var screenMiddle = vHeight/2 - iframeRect.top;
+
+            visArray = [];
+            for (var tracker in visTrackers){
+              var obj = visTrackers[tracker];
+              if(obj.isVisible == true){
+                var trackerId = obj.id;
+                visArray.push(trackerId);
+              }
+            };
+
+            var passedObj = {};
+            passedObj['array'] = visArray;
+            passedObj['screenMiddle'] = screenMiddle;
+
+            var passedObjString = JSON.stringify(passedObj);
+
+            pymParent.sendMessage('array-sent', passedObjString);
+        };
+
+
         var handler = throttle(sendRectRequest.bind(this), this.settings.WAIT_TO_ENSURE_SCROLLING_IS_DONE);
+
+        var visBounce = debounce(sendVisibles, 70);
 
         this.stopTracking = function() {
             if (window.removeEventListener) {
@@ -194,6 +239,7 @@
             addEventListener('load', handler, false);
             addEventListener('scroll', handler, false);
             addEventListener('resize', handler, false);
+            addEventListener('scroll', visBounce);
         }
 
         pymParent.onMessage(this.id + '-rect-return', function(rect) {
