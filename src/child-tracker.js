@@ -174,6 +174,7 @@
             }
 
             this.isVisible = newVisibility;
+            this.rect = rect;
             return this.isVisible;
         }
 

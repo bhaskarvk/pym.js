@@ -37,6 +37,21 @@
         }
     };
 
+    // Child Tracking messages functionality
+    /**
+    * Sends Active message to the child
+    *
+    * @method sendOnActive
+    * @instance
+    *
+    * @param {String} id The id of the element in the child that has appeared on screen
+    */
+    var sendOnActive = function(id) {
+            if (this.el.getElementsByTagName('iframe').length !== 0) {
+                this.sendMessage('on-active', id);
+            }
+        };
+
     /**
     * Function called from the child to test if the parent has visibility tracker
     * enabled to allow for fallback options
@@ -95,6 +110,51 @@
         }
     };
 
+    //Underscore debounce implementation
+    function debounce(func, wait, immediate) {
+      var timeout;
+      return function() {
+        var context = this, args = arguments;
+        var later = function() {
+          timeout = null;
+          if (!immediate) func.apply(context, args);
+        };
+        var callNow = immediate && !timeout;
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+        if (callNow) func.apply(context, args);
+      };
+    };
+
+    var checkActive = function(){
+        var vHeight = window.innerHeight || document.documentElement.clientHeight;
+        var iframeRect = this.iframe.getBoundingClientRect();
+        var screenMiddle = vHeight/2 - iframeRect.top;
+        var d = {}
+        for (var fact_check_id in this.trackers) {
+            var fact_check = this.trackers[fact_check_id];
+            console.log(fact_check.rect, fact_check.id);
+            var middleTopOffset = Math.abs(fact_check.rect.top - screenMiddle);
+            var middleBottomOffset = Math.abs(fact_check.rect.bottom - screenMiddle);
+            var middleOffset = Math.min(middleTopOffset, middleBottomOffset);
+            if (!Object.keys(d).length) {
+                d['id'] = fact_check_id;
+                d['minValue'] = middleOffset;
+            } else {
+                if (d['minValue'] > middleOffset) {
+                    d['id'] = fact_check_id;
+                    d['minValue'] = middleOffset;
+                }
+            }
+            console.log(fact_check_id, middleOffset);
+        }
+        console.log(d['id'], d['minValue']);
+        sendOnActive.call(this, d['id']);
+    };
+
+
+    var checkActiveDebounced = debounce(checkActive, 70);
+
     /**
     * Add child visibility tracking functionality
     *
@@ -113,6 +173,8 @@
                 pymParent.onMessage('test-visibility-tracker', onTestVisibilityTracker);
                 pymParent.onMessage('remove-tracker', onRemoveTracker);
                 pymParent.onMessage('new-fact-check', onNewFactCheck.bind(pymParent, local_tracker));
+                // Add a scroll listener
+                addEventListener('scroll', checkActiveDebounced.bind(pymParent));
             })(idx);
         }
     };
