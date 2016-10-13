@@ -1,4 +1,4 @@
-/*! child-tracker.js - v1.1.1 - 2016-10-06 */
+/*! child-tracker.js - v1.1.1 - 2016-10-12 */
 /** @module ChildTracker */
 (function(factory) {
     if (typeof define === 'function' && define.amd) {
@@ -175,6 +175,7 @@
             }
 
             this.isVisible = newVisibility;
+            this.rect = rect;
             return this.isVisible;
         }
 

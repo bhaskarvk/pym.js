@@ -123,6 +123,19 @@
             }
         };
 
+
+        function getPositionFromMiddle(screenMiddle){
+          var vHeight = window.innerHeight || document.documentElement.clientHeight;
+          var iframeRect = pymParent.iframe.getBoundingClientRect();
+          var screenMiddle = vHeight/2 - iframeRect.top;
+
+          var middleTopOffset = Math.abs(this.rect.top - screenMiddle);
+          var middleBottomOffset = Math.abs(this.rect.bottom - screenMiddle);
+          var middleOffset = Math.min(middleTopOffset, middleBottomOffset);
+          this['minValue'] = middleOffset;
+
+        };
+
         function isElementInViewport(rect) {
             // Adapted from http://stackoverflow.com/a/15203639/117014
             //
@@ -180,6 +193,8 @@
 
         var handler = throttle(sendRectRequest.bind(this), this.settings.WAIT_TO_ENSURE_SCROLLING_IS_DONE);
 
+        var posThrottle = throttle(getPositionFromMiddle.bind(this), this.settings.WAIT_TO_ENSURE_SCROLLING_IS_DONE);
+
         this.stopTracking = function() {
             if (window.removeEventListener) {
                 removeEventListener('DOMContentLoaded', handler, false);
@@ -195,6 +210,7 @@
             addEventListener('load', handler, false);
             addEventListener('scroll', handler, false);
             addEventListener('resize', handler, false);
+            addEventListener('scroll', posThrottle, false);
         }
 
         pymParent.onMessage(this.id + '-rect-return', function(rect) {

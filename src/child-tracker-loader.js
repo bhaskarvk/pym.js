@@ -52,6 +52,12 @@
             }
         };
 
+    var sendOnVHeight = function(vHeight){
+      if (this.el.getElementsByTagName('iframe').length !== 0) {
+          this.sendMessage('on-vHeight', vHeight);
+      }
+    };
+
     /**
     * Function called from the child to test if the parent has visibility tracker
     * enabled to allow for fallback options
@@ -117,26 +123,23 @@
         var context = this, args = arguments;
         var later = function() {
           timeout = null;
-          if (!immediate) func.apply(context, args);
+          if (!immediate) {func.apply(context, args);}
         };
         var callNow = immediate && !timeout;
         clearTimeout(timeout);
         timeout = setTimeout(later, wait);
-        if (callNow) func.apply(context, args);
+        if (callNow) {func.apply(context, args);}
       };
-    };
+    }
 
     var checkActive = function(){
         var vHeight = window.innerHeight || document.documentElement.clientHeight;
-        var iframeRect = this.iframe.getBoundingClientRect();
-        var screenMiddle = vHeight/2 - iframeRect.top;
-        var d = {}
+        // var iframeRect = this.iframe.getBoundingClientRect();
+        // var screenMiddle = vHeight/2 - iframeRect.top;
+        var d = {};
         for (var fact_check_id in this.trackers) {
             var fact_check = this.trackers[fact_check_id];
-            console.log(fact_check.rect, fact_check.id);
-            var middleTopOffset = Math.abs(fact_check.rect.top - screenMiddle);
-            var middleBottomOffset = Math.abs(fact_check.rect.bottom - screenMiddle);
-            var middleOffset = Math.min(middleTopOffset, middleBottomOffset);
+            var middleOffset = fact_check.minValue;
             if (!Object.keys(d).length) {
                 d['id'] = fact_check_id;
                 d['minValue'] = middleOffset;
@@ -146,10 +149,11 @@
                     d['minValue'] = middleOffset;
                 }
             }
-            console.log(fact_check_id, middleOffset);
+            // console.log(fact_check_id, middleOffset);
         }
-        console.log(d['id'], d['minValue']);
+        // console.log(d['id'], d['minValue']);
         sendOnActive.call(this, d['id']);
+        sendOnVHeight.call(this, vHeight);
     };
 
 
