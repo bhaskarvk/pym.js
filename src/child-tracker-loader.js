@@ -137,6 +137,7 @@
         // var iframeRect = this.iframe.getBoundingClientRect();
         // var screenMiddle = vHeight/2 - iframeRect.top;
         var d = {};
+        console.log(this.trackers);
         for (var fact_check_id in this.trackers) {
             var fact_check = this.trackers[fact_check_id];
             var middleOffset = fact_check.minValue;
