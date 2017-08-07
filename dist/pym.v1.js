@@ -1,4 +1,4 @@
-/*! pym.js - v1.3.1 - 2017-07-25 */
+/*! pym.js - v1.3.1 - 2017-08-06 */
 /*
 * Pym.js is library that resizes an iframe based on the width of the parent and the resulting height of the child.
 * Check out the docs at http://blog.apps.npr.org/pym.js/ or the readme at README.md for usage.
@@ -228,7 +228,7 @@
                             'sandbox': 'string', 'allowfullscreen': 'boolean',
                             'parenturlparam': 'string', 'parenturlvalue': 'string',
                             'optionalparams': 'boolean', 'trackscroll': 'boolean',
-                            'scrollwait': 'number'};
+                            'scrollwait': 'number', 'lazyload': 'boolean'};
 
             var config = {};
 
@@ -286,6 +286,7 @@
      * @param {string} [config.optionalparams] - if passed and different than false it will strip the querystring params parentUrl and parentTitle passed to the iframe src
      * @param {boolean} [config.trackscroll] - if passed it will activate scroll tracking on the parent
      * @param {number} [config.scrollwait] - if passed it will set the throttle wait in order to fire scroll messaging. Defaults to 100 ms.
+     * @param {boolean} [config.lazyload] - if passed and different than false construct a iframe that can be lazy loaded along with {@link http://dinbror.dk/blog/blazy/?ref=github#iframe blazy-iframe}
      * @see {@link https://developer.mozilla.org/en-US/docs/Web/HTML/Element/iframe iFrame}
      */
     lib.Parent = function(id, url, config) {
@@ -399,6 +400,12 @@
                 this.iframe.src += '&'+ this.settings.parenturlparam + '=' + encodeURIComponent(this.settings.parenturlvalue);
             }
             this.iframe.src +=hash;
+
+            if(this.settings.lazyload) {
+              this.iframe.setAttribute('data-src', this.iframe.src);
+              this.iframe.setAttribute('class', 'b-lazy');
+              this.iframe.src = 'about:blank';
+            }
 
             // Set some attributes to this proto-iframe.
             this.iframe.setAttribute('width', '100%');
